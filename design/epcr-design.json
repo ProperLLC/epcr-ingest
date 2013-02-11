@@ -1,0 +1,52 @@
+ePCR JSON Formats:
+
+ePRC document:
+
+{
+	"formId" : 65432,
+	"departmentCode" : "BH",
+	"deviceSequenceId" : 1234,
+	"formData" : {
+
+	},
+	"audit" : {
+		"user" : "JSIXPACK",
+		"dateCreated" : "2013-01-01T01:01:01-0700",
+		"dateUpdated" : "2013-01-01T02:01:01-0700"
+	}
+
+}
+
+form-metadata : 
+{
+	"formId" : 65432,
+	"version" : 1.0,
+	"schema" : "form65432-schema.json",
+	"departmentCode" : "BH",
+	"audit" : {
+		"user" : "JSIXPACK",
+		"dateCreated" : "2013-01-01T01:01:01-0700",
+		"dateUpdated" : "2013-01-01T02:01:01-0700",
+		"description" : "intiial version of form 65432"
+	}
+}
+
+department document:
+
+{
+	"departementCode" : "BH",
+	"name" : "Beverly Hills",
+	"contacts" : [
+		{
+			"types" : ["billing", "technical", "decisionMaker"],
+			"firstName" : "John",
+			"lastName" : "Doe",
+			"email" : "jdoe@bh.com",
+			"primaryPhone" : "555-867-5309",
+			"secondaryPhone" : "566-867-5309"
+		} 
+	]
+	// TODO - perhaps more to add here?  address, etc
+
+}
+
