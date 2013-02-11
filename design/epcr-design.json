@@ -3,11 +3,13 @@ ePCR JSON Formats:
 ePRC document:
 
 {
+	"ObjectId" : 1234, // internal mongo id - are random and suitable for what we need; could override this if we want
+	"status" : "PENDING", // what are all the states, lifecycle of this document?  may need a more complex object to track it
 	"formId" : 65432,
 	"departmentCode" : "BH",
 	"deviceSequenceId" : 1234,
 	"formData" : {
-
+		// form data goes here, validated against JSON schema
 	},
 	"audit" : {
 		"user" : "JSIXPACK",
@@ -19,7 +21,7 @@ ePRC document:
 
 form-metadata : 
 {
-	"formId" : 65432,
+	"formId" : 65432, // will use this over ObjectID since its unique
 	"version" : 1.0,
 	"schema" : "form65432-schema.json",
 	"departmentCode" : "BH",
@@ -31,10 +33,13 @@ form-metadata :
 	}
 }
 
-department document:
 
+
+organization : 
+// either a transport provider or a hospital
 {
-	"departementCode" : "BH",
+	"ObjectId" : 1234,
+	"departmentCode" : "BH",
 	"name" : "Beverly Hills",
 	"contacts" : [
 		{
@@ -49,4 +54,23 @@ department document:
 	// TODO - perhaps more to add here?  address, etc
 
 }
+
+user : 
+{
+	"name" : "name of the credentials",
+	"username" : "JSIXPACK", // should be the actual unique id
+	"password" : "some MD5 encrypted string",
+	"apiKey" : "some unreadable SHA-1 key",
+}
+
+sessionHistory : 
+{
+	"username" : "JSIXPACK",
+	"ipAddress" : "10.0.0.1", 
+	"successful" : true,
+	"action" : "LOGIN",
+	"dateTime" : "2013-01-01T01:01:01-0700"
+}
+
+// TODO - sample JSON schema based on XML samples
 

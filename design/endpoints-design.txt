@@ -1,0 +1,9 @@
+REST URL Endpoints Design:
+
+Metadata:
+
+GET /forms - return all form metadata in the system
+POST /form  - add a new form to the system (JSON payload)
+PUT  /form 	- update an existing form
+
+GET /forms/
