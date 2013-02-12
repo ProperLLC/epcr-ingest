@@ -1,9 +1,12 @@
 REST URL Endpoints Design:
 
-Metadata:
+POST /incident
+	- accept text/json
+	- single incident record
+	- return appropriate HTTP code on success/failure
 
-GET /forms - return all form metadata in the system
-POST /form  - add a new form to the system (JSON payload)
-PUT  /form 	- update an existing form
-
-GET /forms/
+POST /incidents
+	- accept text/json
+	- array of incident records
+	- return appropriate HTTP code on success/failure
+	- atomic operation - if on doc fails, all fail

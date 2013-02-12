@@ -1,16 +1,27 @@
 ePCR JSON Formats:
 
-ePRC document:
+ePCR document:
 
 {
 	"ObjectId" : 1234, // internal mongo id - are random and suitable for what we need; could override this if we want
-	"status" : "PENDING", // what are all the states, lifecycle of this document?  may need a more complex object to track it
 	"formId" : 65432,
 	"departmentCode" : "BH",
+	"hospitalCode" : "XY", // I'm guessing this could also be in the formData - would be best to pull this up to the top since all forms are likely to have this
 	"deviceSequenceId" : 1234,
+	"readyForArchive" : false,
 	"formData" : {
 		// form data goes here, validated against JSON schema
 	},
+	"statusHistory" : [
+		{ 
+			"dateTime" : "2013-01-01T01:01:01-0700",
+			"status" : "SUBMITTED" // SUBMITTED | PENDING | ARCHIVED
+		},
+		{ 
+			"dateTime" : "2013-01-01T01:01:01-0700",
+			"status" : "PENDING"
+		}
+	],
 	"audit" : {
 		"user" : "JSIXPACK",
 		"dateCreated" : "2013-01-01T01:01:01-0700",
@@ -50,6 +61,21 @@ organization :
 			"primaryPhone" : "555-867-5309",
 			"secondaryPhone" : "566-867-5309"
 		} 
+	],
+	// Not sure yet on these, but store the actual filters for an org with an org; start with simple
+	"filters" : [
+		{
+			"name" : "BH Filter",
+			"filterBy" : "departmentCode",
+			"value" : "BH",
+			"default" : true
+		},
+		{
+			"name" : "XY Hospital Code",
+			"filterBy" : "hospitalCode",
+			"value" : "XY",
+			"default" : false
+		}
 	]
 	// TODO - perhaps more to add here?  address, etc
 
