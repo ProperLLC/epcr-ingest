@@ -1,3 +1,7 @@
+How to extract Map of each sub-document:
+
+// val als_map = (pcrXml \\ "_").flatten.filter(_.label.startsWith("als_")).map( node => node.label.substring(node.label.lastIndexOf("_") +1)  -> node.text).toMap
+
 ePCR JSON Formats:
 
 ePCR document:
