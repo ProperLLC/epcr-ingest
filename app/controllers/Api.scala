@@ -8,6 +8,14 @@ import play.api.libs.json.Json.JsValueWrapper
 
 import services._
 
+import akka.actor._
+import akka.util.Timeout
+import akka.pattern.ask
+import play.libs.Akka
+
+import scala.concurrent.duration._
+
+
 /**
  * Created with IntelliJ IDEA.
  * User: terry
@@ -22,10 +30,15 @@ import services._
  */
 object Api extends Controller {
 
+    implicit val timeout = Timeout(1 second)
+    lazy val ingestService = Akka.system.actorOf(Props[IngestService])
+
     def incidentIngest = Action(parse.xml) { request =>
       val data = IngestXmlService.parseIncident(request.body)
       // TODO - create async message to an actor to handle placing this into Mongo and returning a result code
       val json = Json.toJson(data)
+      // ask the ingestService actor to save the incident
+      ingestService ? Save(json)
       // for now this will simply output the XML as JSON to help us prove that our parsing works
       Ok(json).as(JSON)
     }
