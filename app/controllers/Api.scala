@@ -14,6 +14,7 @@ import akka.pattern.ask
 import play.libs.Akka
 
 import scala.concurrent.duration._
+import concurrent.Await
 
 
 /**
@@ -38,9 +39,10 @@ object Api extends Controller {
       // TODO - create async message to an actor to handle placing this into Mongo and returning a result code
       val json = Json.toJson(data)
       // ask the ingestService actor to save the incident
-      ingestService ? Save(json)
+      val future = ingestService ? Save(json)
+      val result = Await.result(future, timeout.duration).asInstanceOf[JsObject]
       // for now this will simply output the XML as JSON to help us prove that our parsing works
-      Ok(json).as(JSON)
+      Ok(result).as(JSON)
     }
 
 

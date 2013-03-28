@@ -35,29 +35,38 @@ class IngestService extends Actor {
   def receive = {
     case Save(incident) => {
       // add wrapper elements to JsValue
-      val incidentWrapper = Json.obj(
-        "formId" ->  65432,
-        "departmentCode" -> "BH",
-        "hospitalCode" -> "XY",
-        "deviceSequenceId" -> 1234,
-        "complete" -> false,
-        "formData" -> incident,
-        "statusHistory" -> Json.arr(
-          Json.obj(
-            "dateTime" -> "2013-03-24T09:31:00-0700",
-            "status" -> "SUBMITTED"
-          )
-        ),
-        "audit" -> Json.obj(
-          "user" -> "JSIXPACK",
-          "dateCreated" -> "2013-03-24T09:31:00-0700"
-        )
-      )
+      val incidentWrapper = IngestService.createIncidentWrapper(incident)
       // save to mongo
+      // TODO - move to DAO or something...
       collection.insert[JsValue](incidentWrapper).map( lastError =>
         println(s"Error while saving: $lastError")
       )
+      // send the results back to the caller
+      sender ! incidentWrapper
     }
+  }
+}
+
+object IngestService {
+  def createIncidentWrapper(incident : JsValue) : JsObject = {
+    Json.obj(
+      "formId" ->  65432,
+      "departmentCode" -> "BH",
+      "hospitalCode" -> "XY",
+      "deviceSequenceId" -> 1234,
+      "complete" -> false,
+      "formData" -> incident,
+      "statusHistory" -> Json.arr(
+        Json.obj(
+          "dateTime" -> "2013-03-24T09:31:00-0700",
+          "status" -> "SUBMITTED"
+        )
+      ),
+      "audit" -> Json.obj(
+        "user" -> "JSIXPACK",
+        "dateCreated" -> "2013-03-24T09:31:00-0700"
+      )
+    )
   }
 }
 
