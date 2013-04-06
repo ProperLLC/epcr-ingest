@@ -51,21 +51,21 @@ object Api extends Controller {
     implicit val objectMapFormat = new Format[Map[String, Any]] {
 
       def writes(map: Map[String, Any]): JsValue =
-        Json.obj(map.map{case (s, o) =>
-          val ret:(String, JsValueWrapper) = o match {
-            case _:String => s -> JsString(o.asInstanceOf[String])
-            case _ => s -> JsObject(o.asInstanceOf[Map[String, String]].map( node => node._1 -> JsString(node._2)).toList)
-          }
-          ret
-        }.toSeq:_*)
+            Json.obj(map.map{case (s, o) =>
+              val ret:(String, JsValueWrapper) = o match {
+                case _:String => s -> JsString(o.asInstanceOf[String])
+                case _ => s -> JsObject(o.asInstanceOf[Map[String, String]].map( node => node._1 -> JsString(node._2)).toList)
+              }
+              ret
+            }.toSeq:_*)
 
 
-      def reads(jv: JsValue): JsResult[Map[String, Any]] =
-        JsSuccess(jv.as[Map[String, JsValue]].map{case (k, v) =>
-          k -> (v match {
-            case s:JsString => s.as[String]
-            case l => l.as[Map[String, String]]
-          })
+          def reads(jv: JsValue): JsResult[Map[String, Any]] =
+            JsSuccess(jv.as[Map[String, JsValue]].map{case (k, v) =>
+              k -> (v match {
+                case s:JsString => s.as[String]
+                case l => l.as[Map[String, String]]
+              })
         })
     }
 }

@@ -53,7 +53,8 @@ object IngestService {
       "formId" ->  65432,
       "departmentCode" -> "BH",
       "hospitalCode" -> "XY",
-      "deviceSequenceId" -> 1234,
+      "deviceId" -> 1234,
+      "sequenceId" -> "", // must be unique; currently the name of the xml file; if receive duplicate, overwrite
       "complete" -> false,
       "formData" -> incident,
       "statusHistory" -> Json.arr(

@@ -5,7 +5,7 @@
 # Home page
 GET     /                           controllers.Application.index
 
-POST    /incident                   controllers.Api.incidentIngest
+POST    /incident                  controllers.Api.incidentIngest
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)
