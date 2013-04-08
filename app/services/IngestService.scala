@@ -1,22 +1,26 @@
 package services
 
 import akka.actor._
-import concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Await
+import akka.util.Timeout
+
+// Reactive Mongo Imports
+import reactivemongo.api._
+import reactivemongo.bson._
+import reactivemongo.bson.handlers.DefaultBSONHandlers._
 
 // Reactive Mongo plugin
 import play.modules.reactivemongo._
-import play.modules.reactivemongo.ReactiveBSONImplicits._
-
-// Reactive Mongo Imports
-import reactivemongo.bson._
+import play.modules.reactivemongo.PlayBsonImplicits._
 
 // Play Json imports
 import play.api.libs.json._
 
-import play.api.Play.current
-import play.api.libs.json.JsValue
-
 import org.joda.time._
+
+import play.api.Play.current
+import concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration._
 
 /**
  * Created with IntelliJ IDEA.
@@ -31,19 +35,30 @@ import org.joda.time._
 // TODO - doing this inline just to get mechanics working; likely need to create a companion class for this
 class IngestService extends Actor {
 
-  val db = ReactiveMongoPlugin.db
-  lazy val collection = db("incidents")
+  val db : DefaultDB = ReactiveMongoPlugin.db
+  //lazy val collection : Collection = db.("incidents")
+  implicit val timeout = Timeout(1 second)
 
   def receive = {
     case Save(incident, fileName, user) => {
+      val collection = db("incidents")
       // add wrapper elements to JsValue
       val incidentWrapper = IngestService.createIncidentWrapper(incident, fileName, user)
-      // save to mongo
-      // TODO - move to DAO or something...
-      collection.insert[JsValue](incidentWrapper).map( lastError =>
-        println(s"Error while saving: $lastError")
-      )
-      // send the results back to the caller
+      // look to see if there's any here with the sequenceId we have...
+      val qb = QueryBuilder().query(Json.obj("sequenceId" -> fileName))
+      // if we found any with that sequenceId - we nuke them
+      val results = collection.find[JsValue](qb).toList.map {  incident =>
+         collection.remove[JsValue](Json.obj("sequenceId" -> fileName)).map( lastError =>
+            println(s"Results of removing documents: $lastError")
+         )
+      } map { _ =>
+        // save to mongo
+        // TODO - move to DAO or something...
+        collection.insert[JsValue](incidentWrapper).map( lastError =>
+          println(s"Results of save: $lastError")
+        )
+      }
+      // send the results back to the caller  (should we wait for any of the mongo stuff to complete, or trust it its async'edness??
       sender ! incidentWrapper
     }
   }
