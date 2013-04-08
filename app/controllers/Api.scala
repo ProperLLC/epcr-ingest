@@ -29,17 +29,27 @@ import concurrent.Await
  * Please view the routes file (../conf/routes) to understand what HTTP endpoints we handle.
  *
  */
-object Api extends Controller {
+object Api extends Controller with Secured{
 
     implicit val timeout = Timeout(1 second)
     lazy val ingestService = Akka.system.actorOf(Props[IngestService])
 
-    def incidentIngest = Action(parse.xml) { request =>
+    // Two examples on how to secure the endpoints with basic auth
+    def authenticatedAction = Secured("admin", "pass123") {
+      Action { request =>
+        Ok("Access Granted!")
+      }
+    }
+
+    def securedAction = IsAuthenticated { username => implicit request =>
+      Ok(s"Access granted to ${username}")
+    }
+
+    def incidentIngest(fileName : String) = Action(parse.xml) { request =>
       val data = IngestXmlService.parseIncident(request.body)
-      // TODO - create async message to an actor to handle placing this into Mongo and returning a result code
       val json = Json.toJson(data)
       // ask the ingestService actor to save the incident
-      val future = ingestService ? Save(json)
+      val future = ingestService ? Save(json, fileName, "test")
       val result = Await.result(future, timeout.duration).asInstanceOf[JsObject]
       // for now this will simply output the XML as JSON to help us prove that our parsing works
       Ok(result).as(JSON)

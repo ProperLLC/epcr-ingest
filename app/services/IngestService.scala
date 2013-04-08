@@ -16,6 +16,8 @@ import play.api.libs.json._
 import play.api.Play.current
 import play.api.libs.json.JsValue
 
+import org.joda.time._
+
 /**
  * Created with IntelliJ IDEA.
  * User: terry
@@ -33,9 +35,9 @@ class IngestService extends Actor {
   lazy val collection = db("incidents")
 
   def receive = {
-    case Save(incident) => {
+    case Save(incident, fileName, user) => {
       // add wrapper elements to JsValue
-      val incidentWrapper = IngestService.createIncidentWrapper(incident)
+      val incidentWrapper = IngestService.createIncidentWrapper(incident, fileName, user)
       // save to mongo
       // TODO - move to DAO or something...
       collection.insert[JsValue](incidentWrapper).map( lastError =>
@@ -48,28 +50,30 @@ class IngestService extends Actor {
 }
 
 object IngestService {
-  def createIncidentWrapper(incident : JsValue) : JsObject = {
+  def createIncidentWrapper(incident : JsValue, fileName : String, user : String) : JsObject = {
+    var Array(deptCode, formId, deviceId) = fileName.split('.')
+    var inDate = new DateTime()
     Json.obj(
-      "formId" ->  65432,
-      "departmentCode" -> "BH",
-      "hospitalCode" -> "XY",
-      "deviceId" -> 1234,
-      "sequenceId" -> "", // must be unique; currently the name of the xml file; if receive duplicate, overwrite
+      "formId" ->  formId,
+      "departmentCode" -> deptCode, // first two letters of the file name
+      "hospitalCode" -> (incident \ "transporthospcode"),  // transporthospcode
+      "deviceId" -> deviceId,
+      "sequenceId" -> fileName, // must be unique; currently the name of the xml file; if receive duplicate, overwrite
       "complete" -> false,
       "formData" -> incident,
       "statusHistory" -> Json.arr(
         Json.obj(
-          "dateTime" -> "2013-03-24T09:31:00-0700",
+          "dateTime" -> inDate.getMillis,
           "status" -> "SUBMITTED"
         )
       ),
       "audit" -> Json.obj(
-        "user" -> "JSIXPACK",
-        "dateCreated" -> "2013-03-24T09:31:00-0700"
+        "user" -> user,
+        "dateCreated" -> inDate.getMillis
       )
     )
   }
 }
 
 // Messages we handle
-case class Save( incident : JsValue)
+case class Save( incident : JsValue, fileName : String, user : String)
