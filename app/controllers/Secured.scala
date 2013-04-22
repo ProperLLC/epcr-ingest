@@ -2,6 +2,7 @@ package controllers
 
 import play.api._
 import play.api.mvc._
+import services.UserLookupService
 
 /**
  * Created with IntelliJ IDEA.
@@ -50,10 +51,7 @@ trait Secured {
    * @return
    */
   def userLookup(creds : UserCredentials) : Option[String] = {
-    if (creds.username != "blaz")
-      None
-    else
-      Some(creds.username)
+    UserLookupService.findByUsernamePassword(creds.username, creds.password)
   }
 
   /**
