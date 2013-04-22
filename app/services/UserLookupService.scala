@@ -5,6 +5,7 @@ package services
 import reactivemongo.api._
 import reactivemongo.bson._
 import reactivemongo.bson.handlers.DefaultBSONHandlers._
+import play.Logger
 
 // Reactive Mongo plugin
 import play.modules.reactivemongo._
@@ -31,17 +32,11 @@ object UserLookupService {
   val db : DefaultDB = ReactiveMongoPlugin.db
 
   def findByUsernamePassword(username : String, password : String) : Option[String] = {
+    Logger.info(s"Looking up user ${username}...")
     val collection = db("users")
     val qb = QueryBuilder().query(Json.obj("userName" -> username, "password" -> password))
-    // if we found any with that sequenceId - we nuke them
     val cursor = collection.find[JsValue](qb)
-//
-//    val results = for {
-//      maybeUser <-  cursor.headOption
-//      result <- maybeUser.map(user => Some((user \ "userName").as[String]))
-//    } yield result
-
+    // not sure if this is ideal, but it seems to work for now...
     Await.result(cursor.headOption, 1 second).map(user => Some((user \ "userName").as[String])).getOrElse(None)
-
   }
 }

@@ -3,6 +3,7 @@ package services
 import akka.actor._
 import scala.concurrent.Await
 import akka.util.Timeout
+import play.Logger
 
 // Reactive Mongo Imports
 import reactivemongo.api._
@@ -49,13 +50,13 @@ class IngestService extends Actor {
       // if we found any with that sequenceId - we nuke them
       val results = collection.find[JsValue](qb).toList.map {  incident =>
          collection.remove[JsValue](Json.obj("fileName" -> fileName)).map( lastError =>
-            println(s"Results of removing documents: $lastError")
+            Logger.info(s"Results of removing documents: $lastError")
          )
       } map { _ =>
         // save to mongo
         // TODO - move to DAO or something...
         collection.insert[JsValue](incidentWrapper).map( lastError =>
-          println(s"Results of save: $lastError")
+          Logger.info(s"Results of save: $lastError")
         )
       }
       // send the results back to the caller  (should we wait for any of the mongo stuff to complete, or trust it its async'edness??
