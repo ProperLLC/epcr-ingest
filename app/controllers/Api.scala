@@ -34,22 +34,16 @@ object Api extends Controller with Secured{
     implicit val timeout = Timeout(1 second)
     lazy val ingestService = Akka.system.actorOf(Props[IngestService])
 
-    // Two examples on how to secure the endpoints with basic auth
-    def authenticatedAction = Secured("admin", "pass123") {
-      Action { request =>
-        Ok("Access Granted!")
-      }
+    def securedAction = Authenticated(parse.anyContent) { implicit request =>
+      Ok(s"Access granted to ${request.user}")
     }
 
-    def securedAction = IsAuthenticated { username => implicit request =>
-      Ok(s"Access granted to ${username}")
-    }
-
-    def incidentIngest(fileName : String) = Action(parse.xml) { request =>
+    def incidentIngest(fileName : String) = Authenticated(parse.xml) { request =>
       val data = IngestXmlService.parseIncident(request.body)
       val json = Json.toJson(data)
       // ask the ingestService actor to save the incident
-      val future = ingestService ? Save(json, fileName, "test")
+      val future = ingestService ? Save(json, fileName, request.user)
+      // using an await here prolly isn't very smart - (not async) - but it works for now
       val result = Await.result(future, timeout.duration).asInstanceOf[JsObject]
       // for now this will simply output the XML as JSON to help us prove that our parsing works
       Ok(result).as(JSON)

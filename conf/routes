@@ -4,8 +4,8 @@
 
 # Home page
 GET     /                           controllers.Application.index
-GET     /secured                    controllers.Api.authenticatedAction
-GET     /anotherSecured             controllers.Api.securedAction
+#GET     /secured                    controllers.Api.authenticatedAction
+GET     /secured                    controllers.Api.securedAction
 
 POST    /incident/:fileName                  controllers.Api.incidentIngest(fileName)
 

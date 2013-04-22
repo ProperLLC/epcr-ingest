@@ -45,10 +45,10 @@ class IngestService extends Actor {
       // add wrapper elements to JsValue
       val incidentWrapper = IngestService.createIncidentWrapper(incident, fileName, user)
       // look to see if there's any here with the sequenceId we have...
-      val qb = QueryBuilder().query(Json.obj("sequenceId" -> fileName))
+      val qb = QueryBuilder().query(Json.obj("fileName" -> fileName))
       // if we found any with that sequenceId - we nuke them
       val results = collection.find[JsValue](qb).toList.map {  incident =>
-         collection.remove[JsValue](Json.obj("sequenceId" -> fileName)).map( lastError =>
+         collection.remove[JsValue](Json.obj("fileName" -> fileName)).map( lastError =>
             println(s"Results of removing documents: $lastError")
          )
       } map { _ =>
@@ -66,14 +66,14 @@ class IngestService extends Actor {
 
 object IngestService {
   def createIncidentWrapper(incident : JsValue, fileName : String, user : String) : JsObject = {
-    var Array(deptCode, formId, deviceId) = fileName.split('.')
+    var Array(deptCode, formId, sequenceId) = fileName.split('.')
     var inDate = new DateTime()
     Json.obj(
       "formId" ->  formId,
       "departmentCode" -> deptCode, // first two letters of the file name
       "hospitalCode" -> (incident \ "transporthospcode"),  // transporthospcode
-      "deviceId" -> deviceId,
-      "sequenceId" -> fileName, // must be unique; currently the name of the xml file; if receive duplicate, overwrite
+      "sequenceId" -> sequenceId, // must be unique; currently the name of the xml file; if receive duplicate, overwrite
+      "fileName" -> fileName,
       "complete" -> false,
       "formData" -> incident,
       "statusHistory" -> Json.arr(
