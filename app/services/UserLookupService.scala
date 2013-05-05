@@ -3,13 +3,11 @@ package services
 
 // Reactive Mongo Imports
 import reactivemongo.api._
-import reactivemongo.bson._
-import reactivemongo.bson.handlers.DefaultBSONHandlers._
 import play.Logger
 
 // Reactive Mongo plugin
 import play.modules.reactivemongo._
-import play.modules.reactivemongo.PlayBsonImplicits._
+import play.modules.reactivemongo.json.collection.JSONCollection
 
 // Play Json imports
 import play.api.libs.json._
@@ -30,13 +28,12 @@ import scala.concurrent.ExecutionContext.Implicits.global
 object UserLookupService {
 
   val db : DefaultDB = ReactiveMongoPlugin.db
+  lazy val collection = db.collection[JSONCollection]("users")
 
   def findByUsernamePassword(username : String, password : String) : Option[String] = {
     Logger.info(s"Looking up user ${username}...")
-    val collection = db("users")
-    val qb = QueryBuilder().query(Json.obj("userName" -> username, "password" -> password))
-    val cursor = collection.find[JsValue](qb)
+    val cursor = collection.find(Json.obj("username" -> username, "password" -> password)).cursor[JsValue]
     // not sure if this is ideal, but it seems to work for now...
-    Await.result(cursor.headOption, 1 second).map(user => Some((user \ "userName").as[String])).getOrElse(None)
+    Await.result(cursor.headOption, 5 seconds).map(user => Some((user \ "username").as[String])).getOrElse(None)
   }
 }
