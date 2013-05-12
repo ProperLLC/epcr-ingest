@@ -17,6 +17,14 @@ trait Secured {
 
   def Authenticated[A](p: BodyParser[A])(f: AuthenticatedRequest[A] => Result) = {
     Action(p) { request =>
+      // Why this works:
+      // the for comperhension is doing some work for us, what is does is turns the first item into a
+      // flatMap operation, then the second into a map operation over the yield within the first.
+      //
+      // In the case of Options, a flatMap or map operation will result in None if the Option is None (and the function
+      // won't be executed).
+      // We use this to determine if the user is unauthorized or not - because if either the credentials or
+      // user name don't exit, the yield method won't be executed.
       val result = for {
         credentials <- userCredentials(request)
         username <- userLookup(credentials)
